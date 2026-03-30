@@ -64,8 +64,8 @@ export function ChatInput({ onSend, disabled = false }) {
           onChange={e => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask Fol-Tree anything about your files…"
-          disabled={disabled}
           rows={1}
+          autoFocus
           style={{
             flex: 1,
             fontFamily: "'JetBrains Mono', monospace",
@@ -78,7 +78,6 @@ export function ChatInput({ onSend, disabled = false }) {
             lineHeight: 1.6,
             maxHeight: '160px',
             overflowY: 'auto',
-            opacity: disabled ? 0.5 : 1,
           }}
         />
 
