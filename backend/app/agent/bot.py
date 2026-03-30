@@ -4,7 +4,6 @@ from app.indexer.indexer import FolderIndex
 from app.core.config import settings
 from app.agent import tools
 
-
 def detect_intent(message: str) -> dict:
     msg = message.lower()
 
@@ -12,7 +11,33 @@ def detect_intent(message: str) -> dict:
     if any(w in msg for w in ["above", "larger", "bigger", "more than", "greater", "exceed", "over"]):
         nums = re.findall(r'\d+\.?\d*', msg)
         size = float(nums[0]) if nums else 1.0
-        return {"type": "size", "size_mb": size}
+
+        # Normalize message (remove spaces for cases like "100 KB")
+        msg_clean = msg.replace(" ", "")
+
+        # Detect unit
+        if "gb" in msg_clean:
+            size_mb = size * 1024
+            unit = "GB"
+        elif "mb" in msg_clean:
+            size_mb = size
+            unit = "MB"
+        elif "kb" in msg_clean:
+            size_mb = size / 1024
+            unit = "KB"
+        elif "b" in msg_clean:
+            size_mb = size / (1024 * 1024)
+            unit = "B"
+        else:
+            size_mb = size  # default MB
+            unit = "MB"
+
+        return {
+            "type": "size",
+            "size_mb": size_mb,
+            "original_size": size,
+            "unit": unit
+        }
 
     # Content search
     if any(w in msg for w in ["find", "search", "contain", "which file has", "look for",

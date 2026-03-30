@@ -9,13 +9,13 @@ def list_files(index: FolderIndex) -> str:
     return f"Total {index.total_files} files:\n" + "\n".join(lines)
 
 
-def files_above_size(index: FolderIndex, size_mb: float) -> str:
+def files_above_size(index: FolderIndex, size_mb: float, original_size=None, unit="MB") -> str:
     threshold = size_mb * 1024 * 1024
     matched = [f for f in index.files if f.size_bytes > threshold]
     if not matched:
-        return f"No files above {size_mb} MB."
+        return f"No files above {original_size} {unit}."
     lines = [f"- {f.name} ({round(f.size_bytes/(1024*1024), 2)} MB)" for f in matched]
-    return f"{len(matched)} file(s) above {size_mb} MB:\n" + "\n".join(lines)
+    return f"{len(matched)} file(s) above {original_size} {unit}:\n" + "\n".join(lines)
 
 
 def search_content(index: FolderIndex, keyword: str) -> str:
