@@ -38,6 +38,7 @@ export function ScanningPage() {
   }
 
   const isComplete = scanStatus === 'complete'
+  const isError = scanStatus === 'error'
 
   // folderPath is now just the folder name (handle.name)
   const folderName = folderPath || 'folder'
@@ -84,6 +85,8 @@ export function ScanningPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           {isComplete ? (
             <CheckCircle size={32} color="#22c55e" />
+          ) : isError ? (
+            <XCircle size={32} color="#ef4444" />
           ) : (
             <Loader
               size={32}
@@ -93,7 +96,7 @@ export function ScanningPage() {
           )}
           <div>
             <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#e2e8f0' }}>
-              {isComplete ? 'Indexing complete' : 'Indexing your files…'}
+              {isComplete ? 'Indexing complete' : isError ? 'Error indexing folder' : 'Indexing your files…'}
             </h1>
             <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
               <FolderOpen size={12} />
@@ -121,7 +124,7 @@ export function ScanningPage() {
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e2330'; e.currentTarget.style.color = '#64748b' }}
             >
-              <X size={12} /> Cancel
+              <X size={12} /> {isError ? 'Go Back' : 'Cancel'}
             </button>
           )}
         </div>
@@ -129,8 +132,8 @@ export function ScanningPage() {
         {/* Progress bar */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '11px', color: '#64748b' }}>
-            <span>{isComplete ? 'Done' : 'Scanning…'}</span>
-            <span style={{ color: isComplete ? '#22c55e' : '#6e8efb', fontWeight: 600 }}>
+            <span>{isComplete ? 'Done' : isError ? 'Failed' : 'Scanning…'}</span>
+            <span style={{ color: isComplete ? '#22c55e' : isError ? '#ef4444' : '#6e8efb', fontWeight: 600 }}>
               {scanProgress}%
             </span>
           </div>
@@ -148,11 +151,15 @@ export function ScanningPage() {
                 width: `${scanProgress}%`,
                 background: isComplete
                   ? 'linear-gradient(90deg, #22c55e, #16a34a)'
+                  : isError
+                  ? 'linear-gradient(90deg, #ef4444, #dc2626)'
                   : 'linear-gradient(90deg, #6e8efb, #a78bfa)',
                 borderRadius: '99px',
                 transition: 'width 0.4s ease, background 0.5s ease',
                 boxShadow: isComplete
                   ? '0 0 10px rgba(34,197,94,0.4)'
+                  : isError
+                  ? '0 0 10px rgba(239, 68, 68, 0.4)'
                   : '0 0 10px rgba(110,142,251,0.4)',
               }}
             />
