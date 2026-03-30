@@ -1,4 +1,6 @@
 from app.indexer.indexer import FolderIndex
+import re
+
 
 def list_files(index: FolderIndex) -> str:
     if not index.files:
@@ -17,11 +19,17 @@ def files_above_size(index: FolderIndex, size_mb: float) -> str:
 
 
 def search_content(index: FolderIndex, keyword: str) -> str:
-    keyword_lower = keyword.lower()
+    print("=== DEBUG CONTENT CHECK ===")
+    for f in index.files[:5]:
+        print(f"{f.name} -> {'HAS CONTENT' if f.content else 'NO CONTENT'}")
+
+    keyword_lower = re.sub(r'\s+', '', keyword.lower())
     matched = []
     for f in index.files:
-        if f.content and keyword_lower in f.content.lower():
-            matched.append(f.name)
+        if f.content:
+            content_clean = re.sub(r'\s+', '', f.content.lower())
+            if keyword_lower in content_clean:
+                matched.append(f.name)
     if not matched:
         return f'No files contain the keyword "{keyword}".'
     return f'Files containing "{keyword}":\n' + "\n".join(f"- {n}" for n in matched)

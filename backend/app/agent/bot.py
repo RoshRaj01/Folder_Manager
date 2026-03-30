@@ -102,7 +102,7 @@ def ask_agent(index: FolderIndex, user_message: str) -> str:
 
     # Step 3 — for list/size/stats queries, skip LLM entirely
     # These are factual — just return the real data directly
-    if intent["type"] in ["list", "size", "stats"]:
+    if intent["type"] in ["list", "size", "stats", "search", "read"]:
         return tool_result
 
     # Step 4 — for search and read, use LLM only to format the answer

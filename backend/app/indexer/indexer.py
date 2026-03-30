@@ -33,9 +33,15 @@ def extract_text(file_path: Path, ext: str, max_mb: int) -> Optional[str]:
         if ext in [".txt", ".md", ".csv", ".log", ".json", ".xml", ".yaml", ".yml", ".py", ".js", ".ts", ".html", ".css"]:
             return file_path.read_text(encoding="utf-8", errors="ignore")
 
+
         elif ext == ".pdf":
             doc = fitz.open(str(file_path))
-            return "\n".join(page.get_text() for page in doc)
+            text = []
+            for page in doc:
+                t = page.get_text("text")
+                if t.strip():
+                    text.append(t)
+            return "\n".join(text) if text else None
 
         elif ext == ".docx":
             doc = docx.Document(str(file_path))
@@ -49,8 +55,9 @@ def extract_text(file_path: Path, ext: str, max_mb: int) -> Optional[str]:
                     lines.append(" | ".join(str(c) for c in row if c is not None))
             return "\n".join(lines)
 
-    except Exception:
-        pass
+
+    except Exception as e:
+        print(f"[ERROR] Failed to read {file_path}: {e}")
 
     return None  # unreadable binary or unsupported format
 
@@ -76,8 +83,8 @@ def build_index(folder_path: str) -> FolderIndex:
                     extension=ext,
                     content=content
                 ))
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[INDEX ERROR] {fp}: {e}")
 
     index.total_files = len(index.files)
     return index
