@@ -5,7 +5,6 @@ import {
 } from 'lucide-react'
 import { Sidebar } from '../components/layout/Sidebar'
 import { ChatPanel } from '../components/layout/ChatPanel'
-import { SourcePanel } from '../components/layout/SourcePanel'
 import { ChatProvider } from '../context/ChatContext'
 import { useApp } from '../context/AppContext'
 import { Button } from '../components/ui/Button'
@@ -262,11 +261,10 @@ export function WorkspacePage() {
           </div>
         </div>
 
-        {/* Main 3-panel layout */}
+        {/* Main 2-panel layout */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
           <Sidebar />
           <ChatPanel />
-          <SourcePanel />
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useCallback } from 'react'
-import { scanFolderStream } from '../lib/api'
+import { scanFolderStream, getScannedData } from '../lib/api'
 
 // ── State Shape ────────────────────────────────────────
 const initialState = {
@@ -109,12 +109,14 @@ export function AppProvider({ children }) {
       }
 
       dispatch({ type: 'SET_SCAN_STATUS', payload: hadError ? 'error' : 'complete' })
+      return !hadError;
     } catch (err) {
       dispatch({
         type: 'ADD_SCAN_LOG',
         payload: { message: `Error: ${err.message}`, type: 'error', ts: Date.now() },
       })
       dispatch({ type: 'SET_SCAN_STATUS', payload: 'error' })
+      return false;
     }
   }, [])
 
@@ -125,12 +127,19 @@ export function AppProvider({ children }) {
     dispatch({ type: 'SET_PAGE', payload: 'workspace' })
   }, [])
 
+  const refreshWorkspace = useCallback(async () => {
+    const { files, skipped } = await getScannedData();
+    dispatch({ type: 'SET_FILES', payload: files });
+    dispatch({ type: 'SET_SKIPPED', payload: skipped });
+  }, [dispatch]);
+
   const value = {
     ...state,
     dispatch,
     navigate,
     startScan,
     enterWorkspace,
+    refreshWorkspace,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

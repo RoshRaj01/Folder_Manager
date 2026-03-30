@@ -20,9 +20,9 @@ export function useScanner() {
     cancelRef.current = false
 
     // Streams progress events into AppContext (drives ScanningPage UI)
-    await startScan(folderPath)
+    const success = await startScan(folderPath)
 
-    if (!cancelRef.current) {
+    if (success && !cancelRef.current) {
       // Fetch the indexed file list from the backend and build a tree
       const { files, skipped } = await getScannedData()
       enterWorkspace(files, skipped)

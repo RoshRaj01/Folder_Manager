@@ -73,9 +73,30 @@ def detect_intent(message: str) -> dict:
                                "breakdown", "how many files", "types of files"]):
         return {"type": "stats"}
 
+    # Delete
+    if "delete" in msg or "remove" in msg:
+        quoted = re.findall(r'["\']([^"\']+)["\']', message)
+        if quoted:
+            return {"type": "delete_request", "filename": quoted[0]}
+        # simple fallback format: "delete filename.txt"
+        match = re.search(r'(?:delete|remove)\s+([^\s]+)', message, re.IGNORECASE)
+        if match:
+            return {"type": "delete_request", "filename": match.group(1).strip('"\'.,')}
+
+    # Rename
+    if "rename" in msg:
+        match = re.search(r'rename\s+(.+?)\s+to\s+(.+)', message, re.IGNORECASE)
+        if match:
+            return {"type": "rename", "old_name": match.group(1).strip('"\'.,'), "new_name": match.group(2).strip('"\'.,')}
+            
+    # Move
+    if "move" in msg:
+        match = re.search(r'move\s+(.+?)\s+to\s+(.+)', message, re.IGNORECASE)
+        if match:
+            return {"type": "move", "filename": match.group(1).strip('"\'.,'), "destination": match.group(2).strip('"\'.,')}
+
     # Default — list
     return {"type": "list"}
-
 
 def run_tool(index: FolderIndex, intent: dict) -> str:
     itype = intent["type"]
@@ -118,9 +139,34 @@ def call_ollama(system: str, user_message: str) -> str:
         return f"ERROR: {str(e)}"
 
 
-def ask_agent(index: FolderIndex, user_message: str) -> str:
+def ask_agent(index: FolderIndex, user_message: str):
     # Step 1 — detect what user wants
     intent = detect_intent(user_message)
+
+    # Step 1.5 — Handle actions instead of simple text queries
+    if intent["type"] == "delete_request":
+        target = intent.get("filename", "")
+        if not target:
+            return "Please specify the filename to delete."
+        return {
+            "reply": f"Are you sure you want to permanently delete `{target}`?",
+            "action": "confirm_delete",
+            "target": target
+        }
+    
+    if intent["type"] == "rename":
+        res = tools.rename_file(index, intent["old_name"], intent["new_name"])
+        if res["success"]:
+            return {"reply": res["reply"], "action": "reindex"}
+        else:
+            return res["reply"]
+            
+    if intent["type"] == "move":
+        res = tools.move_file(index, intent["filename"], intent["destination"])
+        if res["success"]:
+            return {"reply": res["reply"], "action": "reindex"}
+        else:
+            return res["reply"]
 
     # Step 2 — run tool in Python, get REAL data
     tool_result = run_tool(index, intent)

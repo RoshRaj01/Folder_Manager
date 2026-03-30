@@ -1,5 +1,8 @@
 from app.indexer.indexer import FolderIndex
 import re
+import os
+import shutil
+from pathlib import Path
 
 
 def list_files(index: FolderIndex) -> str:
@@ -59,3 +62,48 @@ def get_file_stats(index: FolderIndex) -> str:
         f"Total size: {round(total_size/(1024*1024), 2)} MB\n"
         f"By type: {ext_summary}"
     )
+
+def rename_file(index: FolderIndex, old_name: str, new_name: str) -> dict:
+    base_dir = Path(index.base_folder).resolve()
+    old_path = (base_dir / old_name).resolve()
+    new_path = (base_dir / new_name).resolve()
+
+    if not str(old_path).startswith(str(base_dir)) or not str(new_path).startswith(str(base_dir)):
+        return {"success": False, "reply": "Paths must stay within the project directory."}
+
+    if not old_path.exists():
+        return {"success": False, "reply": f"Cannot find '{old_name}'."}
+
+    if new_path.exists():
+        return {"success": False, "reply": f"'{new_name}' already exists."}
+
+    try:
+        old_path.rename(new_path)
+        return {"success": True, "reply": f"Successfully renamed '{old_name}' to '{new_name}'."}
+    except Exception as e:
+        return {"success": False, "reply": str(e)}
+
+def move_file(index: FolderIndex, filename: str, destination: str) -> dict:
+    base_dir = Path(index.base_folder).resolve()
+    target_path = (base_dir / filename).resolve()
+    dest_path = (base_dir / destination).resolve()
+
+    if not str(target_path).startswith(str(base_dir)) or not str(dest_path).startswith(str(base_dir)):
+        return {"success": False, "reply": "Paths must stay within the project directory."}
+
+    if not target_path.exists():
+        return {"success": False, "reply": f"Cannot find '{filename}'."}
+
+    try:
+        if not dest_path.exists() or not dest_path.is_dir():
+            if dest_path.suffix == '':
+                dest_path.mkdir(parents=True, exist_ok=True)
+            else:
+                 return {"success": False, "reply": f"Destination '{destination}' is not a valid directory."}
+        elif dest_path.is_file():
+            return {"success": False, "reply": f"Destination '{destination}' is a file, not a directory."}
+
+        shutil.move(str(target_path), str(dest_path))
+        return {"success": True, "reply": f"Successfully moved '{filename}' to '{destination}'."}
+    except Exception as e:
+        return {"success": False, "reply": str(e)}
