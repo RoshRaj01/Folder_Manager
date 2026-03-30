@@ -1,20 +1,34 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { Bot, Trash2, Sparkles } from 'lucide-react'
 import { MessageBubble } from '../chat/MessageBubble'
 import { ChatInput } from '../chat/ChatInput'
 import { TypingIndicator } from '../chat/TypingIndicator'
 import { useChat } from '../../context/ChatContext'
 import { useChatActions } from '../../hooks/useChat'
+import { useApp } from '../../context/AppContext'
+import { ConfirmDeleteModal } from '../ui/ConfirmDeleteModal'
+import { deleteItem } from '../../lib/api'
 
 export function ChatPanel() {
   const { messages, isThinking, clearChat } = useChat()
   const { send } = useChatActions()
+  const { refreshWorkspace } = useApp()
   const bottomRef = useRef(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isThinking])
+
+  const handleSend = async (text) => {
+      const res = await send(text)
+      if (res?.action === 'confirm_delete') {
+          setDeleteTarget(res.target)
+      } else if (res?.action === 'reindex') {
+          refreshWorkspace()
+      }
+  }
 
   return (
     <div
@@ -113,7 +127,24 @@ export function ChatPanel() {
       </div>
 
       {/* Input */}
-      <ChatInput onSend={send} disabled={isThinking} />
+      <ChatInput onSend={handleSend} disabled={isThinking} />
+
+      {/* Delete Modal */}
+      {deleteTarget && (
+        <ConfirmDeleteModal 
+            target={deleteTarget} 
+            onClose={() => setDeleteTarget(null)} 
+            onConfirm={async () => {
+                try {
+                    await deleteItem(deleteTarget)
+                    setDeleteTarget(null)
+                    refreshWorkspace() // update the file tree
+                } catch(e) {
+                    alert(e.message)
+                }
+            }} 
+        />
+      )}
     </div>
   )
 }

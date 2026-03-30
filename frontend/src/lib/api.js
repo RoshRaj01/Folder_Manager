@@ -118,6 +118,8 @@ export async function getScannedData() {
         path: `/${f.name}`,
         size: Math.round((f.size_kb || 0) * 1024),
         protected: false,
+        createdAt: f.created_at || 0,
+        modifiedAt: f.modified_at || 0,
       }
     })
 
@@ -162,8 +164,42 @@ export async function sendMessage(query) {
 
   return {
     answer: data.reply || '(No response from agent)',
+    action: data.action,
+    target: data.target,
     sources: [], // backend does not return structured sources yet
   }
+}
+
+/**
+ * Creates a file or folder via backend.
+ */
+export async function createItem(filename, isFolder = false) {
+  const res = await apiFetch('/create-item', {
+    method: 'POST',
+    body: JSON.stringify({ session_id: SESSION_ID, filename, is_folder: isFolder }),
+  })
+  if (!res.ok) {
+    let detail = 'Error creating item'
+    try { const err = await res.json(); detail = err.detail || detail } catch {}
+    throw new Error(detail)
+  }
+  return res.json()
+}
+
+/**
+ * Deletes a file or folder via backend.
+ */
+export async function deleteItem(filename) {
+  const res = await apiFetch('/delete-item', {
+    method: 'POST',
+    body: JSON.stringify({ session_id: SESSION_ID, filename }),
+  })
+  if (!res.ok) {
+    let detail = 'Error deleting item'
+    try { const err = await res.json(); detail = err.detail || detail } catch {}
+    throw new Error(detail)
+  }
+  return res.json()
 }
 
 /**

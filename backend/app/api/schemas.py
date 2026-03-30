@@ -17,3 +17,12 @@ class IndexStatusResponse(BaseModel):
     indexed: bool
     total_files: int = 0
     folder: str = ""
+
+class CreateItemRequest(BaseModel):
+    session_id: str
+    filename: str
+    is_folder: bool = False
+
+class DeleteItemRequest(BaseModel):
+    session_id: str
+    filename: str

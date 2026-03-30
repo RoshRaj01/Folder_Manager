@@ -63,6 +63,7 @@ export function ChatProvider({ children }) {
         },
       })
       dispatch({ type: 'SET_ACTIVE_SOURCES', payload: response.sources || [] })
+      return response
     } catch (err) {
       dispatch({ type: 'SET_ERROR', payload: err.message })
       dispatch({
@@ -76,6 +77,7 @@ export function ChatProvider({ children }) {
           isError: true,
         },
       })
+      return null
     }
   }, [])
 

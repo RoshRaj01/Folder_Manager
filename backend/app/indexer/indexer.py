@@ -15,6 +15,8 @@ class FileRecord:
     size_bytes: int
     extension: str
     content: Optional[str]   # None if binary/too large/unreadable
+    created_at: float = 0.0
+    modified_at: float = 0.0
 
 @dataclass
 class FolderIndex:
@@ -74,14 +76,17 @@ def build_index(folder_path: str) -> FolderIndex:
             fp = Path(root) / filename
             ext = fp.suffix.lower()
             try:
-                size = fp.stat().st_size
+                stat = fp.stat()
+                size = stat.st_size
                 content = extract_text(fp, ext, max_mb)
                 index.files.append(FileRecord(
                     name=filename,
                     path=str(fp),
                     size_bytes=size,
                     extension=ext,
-                    content=content
+                    content=content,
+                    created_at=stat.st_ctime,
+                    modified_at=stat.st_mtime
                 ))
             except Exception as e:
                 print(f"[INDEX ERROR] {fp}: {e}")

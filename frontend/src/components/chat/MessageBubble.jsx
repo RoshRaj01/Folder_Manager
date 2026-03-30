@@ -78,12 +78,6 @@ export function MessageBubble({ message }) {
   const isUser = message.role === 'user'
   const isError = message.isError
 
-  function handleSourceClick() {
-    if (message.sources?.length) {
-      setActiveSources(message.sources)
-    }
-  }
-
   return (
     <div
       className="animate-fade-in-up"
@@ -142,34 +136,6 @@ export function MessageBubble({ message }) {
         >
           {renderContent(message.content)}
         </div>
-
-        {/* Sources */}
-        {!isUser && message.sources?.length > 0 && (
-          <button
-            onClick={handleSourceClick}
-            style={{
-              marginTop: '10px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '5px 10px',
-              background: 'rgba(110,142,251,0.08)',
-              border: '1px solid rgba(110,142,251,0.2)',
-              borderRadius: '5px',
-              color: '#6e8efb',
-              fontSize: '11px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              fontFamily: "'JetBrains Mono', monospace",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(110,142,251,0.15)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(110,142,251,0.08)' }}
-          >
-            <FileText size={12} />
-            {message.sources.length} source{message.sources.length !== 1 ? 's' : ''}
-            <ChevronRight size={12} />
-          </button>
-        )}
       </div>
     </div>
   )
